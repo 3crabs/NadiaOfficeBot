@@ -7,6 +7,7 @@ import (
 	"github.com/umputun/go-flags"
 	"log"
 	"os"
+	"strings"
 )
 
 type Opts struct {
@@ -41,6 +42,12 @@ func main() {
 
 	for update := range updates {
 		if update.Message == nil {
+			continue
+		}
+
+		// ping -> pong
+		if strings.ToLower(update.Message.Text) == "ping" {
+			_, _ = bot.Send(tgbot.NewMessage(update.Message.Chat.ID, "pong"))
 			continue
 		}
 
