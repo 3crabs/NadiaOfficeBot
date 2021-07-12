@@ -6,8 +6,10 @@ import (
 	tgbot "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/umputun/go-flags"
 	"log"
+	"math/rand"
 	"os"
 	"strings"
+	"time"
 )
 
 type Opts struct {
@@ -68,6 +70,13 @@ func main() {
 			continue
 		}
 
+		// command /dinner
+		if update.Message.Text == "/dinner" {
+			_, _ = bot.Send(tgbot.NewMessage(update.Message.Chat.ID,
+				"Предлагаю сходить сегодня в '"+getRandomDinnerPlace()+"'"))
+			continue
+		}
+
 		log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
 
 		msg := tgbot.NewMessage(update.Message.Chat.ID, update.Message.Text)
@@ -75,4 +84,18 @@ func main() {
 
 		_, _ = bot.Send(msg)
 	}
+}
+
+func getRandomDinnerPlace() string {
+	places := []string{
+		"Узбечка",
+		"Мантоварка",
+		"Вьетнамка",
+		"Столовая",
+		"Гриль №1",
+		"КФС",
+	}
+	rand.Seed(time.Now().UnixNano())
+	n := rand.Intn(len(places))
+	return places[n]
 }
