@@ -41,6 +41,8 @@ func main() {
 	updates, err := bot.GetUpdatesChan(u)
 
 	for update := range updates {
+
+		// empty message
 		if update.Message == nil {
 			continue
 		}
@@ -48,6 +50,21 @@ func main() {
 		// ping -> pong
 		if strings.ToLower(update.Message.Text) == "ping" {
 			_, _ = bot.Send(tgbot.NewMessage(update.Message.Chat.ID, "pong"))
+			continue
+		}
+
+		// command /start
+		if update.Message.Text == "/start" {
+			_, _ = bot.Send(tgbot.NewMessage(update.Message.Chat.ID, "Приве, я Надя!"))
+			continue
+		}
+
+		// command /help
+		if update.Message.Text == "/help" {
+			_, _ = bot.Send(tgbot.NewMessage(update.Message.Chat.ID,
+				"Вот чем я могу вам помочь:\n"+
+					"- отправь мне ping и я отобью pong\n"+
+					"\nНу а больше я пока ничего не умею"))
 			continue
 		}
 
