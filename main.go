@@ -90,11 +90,12 @@ func main() {
 
 func getRandomDinnerPlace() string {
 	places := []string{
-		"Узбечка",
+		"Сковородовна",
 		"Мантоварка",
 		"Вьетнамка",
 		"Столовая",
 		"Гриль №1",
+		"Узбечка",
 		"КФС",
 	}
 	rand.Seed(time.Now().UnixNano())
