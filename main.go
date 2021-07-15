@@ -1,16 +1,14 @@
 package main
 
 import (
+	"NadiaOfficeBot/db"
+	"NadiaOfficeBot/files"
 	"errors"
-	"fmt"
 	"github.com/FedorovVladimir/go-log/logs"
 	tgbot "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/prprprus/scheduler"
 	"github.com/umputun/go-flags"
-	"io/ioutil"
-	"math/rand"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -65,8 +63,9 @@ var chatId int64 = 0
 
 //help - помощь
 //dinner  - место для обеда
+//flowers - о цветах
 func main() {
-	readChatId()
+	chatId = files.ReadChatId()
 	s, err := scheduler.NewScheduler(1000)
 	if err != nil {
 		panic(err)
@@ -97,7 +96,7 @@ func main() {
 
 		if chatId == 0 {
 			chatId = update.Message.Chat.ID
-			saveChatId(chatId)
+			files.SaveChatId(chatId)
 		}
 
 		// empty message
@@ -130,6 +129,7 @@ func main() {
 				"Вот чем я могу вам помочь:\n"+
 					"- отправь мне ping и я отобью pong\n"+
 					"- отправь /dinner и я предложу место для обеда\n"+
+					"- отправь /flowers и я расскажу о растениях офиса\n"+
 					"\nА ещё я:\n"+
 					"- напоминаю про полив цветов\n"+
 					"\nНу а больше я пока ничего не умею"))
@@ -139,7 +139,19 @@ func main() {
 		// command /dinner
 		if update.Message.Text == "/dinner" {
 			_, _ = bot.Send(tgbot.NewMessage(update.Message.Chat.ID,
-				"Предлагаю сходить сегодня в '"+getRandomDinnerPlace()+"'"))
+				"Предлагаю сходить сегодня в '"+db.GetRandomDinnerPlace()+"'"))
+			continue
+		}
+
+		// command /flowers
+		if update.Message.Text == "/flowers" {
+			_, _ = bot.Send(tgbot.NewMessage(update.Message.Chat.ID,
+				"В офисе три растения:\n"+
+					"- фикус\n"+
+					"- не фикус\n"+
+					"- арабика\n\n"+
+					"- О поливе арабики и не фикуса я напомню в 10:00 в понеденьник, среду и пятницу.\n"+
+					"- О поливе фикуса в 10:00 примерно каждый 10 день (в выходные надо отдыхать)."))
 			continue
 		}
 
@@ -148,43 +160,4 @@ func main() {
 
 		_, _ = bot.Send(msg)
 	}
-}
-
-func readChatId() {
-	file, _ := os.Open("chat_id.txt")
-	defer func(file *os.File) {
-		err := file.Close()
-		if err != nil {
-			logs.LogError(err)
-		}
-	}(file)
-	b, _ := ioutil.ReadAll(file)
-	i, _ := strconv.Atoi(string(b))
-	chatId = int64(i)
-}
-
-func saveChatId(id int64) {
-	f, _ := os.Create("chat_id.txt")
-	defer func(f *os.File) {
-		err := f.Close()
-		if err != nil {
-			logs.LogError(err)
-		}
-	}(f)
-	_, _ = f.WriteString(fmt.Sprintf("%v", id))
-}
-
-func getRandomDinnerPlace() string {
-	places := []string{
-		"Сковородовна",
-		"Мантоварка",
-		"Вьетнамка",
-		"Столовая",
-		"Гриль №1",
-		"Узбечка",
-		"КФС",
-	}
-	rand.Seed(time.Now().UnixNano())
-	n := rand.Intn(len(places))
-	return places[n]
 }
