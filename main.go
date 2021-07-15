@@ -24,7 +24,6 @@ var opts Opts
 
 var isWaterFlowers = false
 var isWaterFikus = false
-var isWaterArabica = false
 
 func task() {
 	loc, _ := time.LoadLocation("Asia/Barnaul")
@@ -32,28 +31,31 @@ func task() {
 	// рабочий день
 	if int(t.Weekday()) > 0 && int(t.Weekday()) < 6 {
 		// в 18 часов
-		if t.Hour() == 18 && isWaterFlowers == false {
-			isWaterFlowers = true
-			_, _ = bot.Send(tgbot.NewMessage(chatId, "Пришло время опрыскивать цветы)"))
+		if t.Hour() == 18 {
+			// каждый день
+			if isWaterFlowers == false {
+				isWaterFlowers = true
+				_, _ = bot.Send(tgbot.NewMessage(chatId, "Пришло время опрыскивать цветы)"))
+			}
 		}
-		// в 10 часов, каждый 10 день, но не в выходной
-		if t.Hour() == 10 && t.Day()%10 < 3 && isWaterFikus == false {
-			isWaterFikus = true
-			_, _ = bot.Send(tgbot.NewMessage(chatId, "Пришло время полить фикус)"))
-		}
-		// в 10 часов, каждый 3 день, но не в выходной
-		if t.Hour() == 10 && isWaterArabica == false {
-			isWaterArabica = true
-			_, _ = bot.Send(tgbot.NewMessage(chatId, "Пришло время полить арабику и не фикус)"))
+		// в 10 часов
+		if t.Hour() == 10 {
+			// каждый 10 день
+			if t.Day()%10 < 3 && isWaterFikus == false {
+				isWaterFikus = true
+				_, _ = bot.Send(tgbot.NewMessage(chatId, "Пришло время полить фикус)"))
+			}
+			// в понедельник, среду и пятницу
+			if int(t.Weekday()) == 1 || int(t.Weekday()) == 3 || int(t.Weekday()) == 5 {
+				_, _ = bot.Send(tgbot.NewMessage(chatId, "Пришло время полить арабику и не фикус)"))
+			}
 		}
 	}
+	// в полночь
 	if t.Hour() == 0 {
 		isWaterFlowers = false
 		if t.Day()%10 == 4 {
 			isWaterFikus = false
-		}
-		if t.Day()%3 == 0 {
-			isWaterArabica = false
 		}
 	}
 }
@@ -150,7 +152,12 @@ func main() {
 
 func readChatId() {
 	file, _ := os.Open("chat_id.txt")
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			logs.LogError(err)
+		}
+	}(file)
 	b, _ := ioutil.ReadAll(file)
 	i, _ := strconv.Atoi(string(b))
 	chatId = int64(i)
@@ -158,7 +165,12 @@ func readChatId() {
 
 func saveChatId(id int64) {
 	f, _ := os.Create("chat_id.txt")
-	defer f.Close()
+	defer func(f *os.File) {
+		err := f.Close()
+		if err != nil {
+			logs.LogError(err)
+		}
+	}(f)
 	_, _ = f.WriteString(fmt.Sprintf("%v", id))
 }
 
