@@ -49,12 +49,12 @@ func task() {
 	}
 	if t.Hour() == 0 {
 		isWaterFlowers = false
-	}
-	if t.Day()%10 == 4 {
-		isWaterFikus = false
-	}
-	if t.Day()%3 == 0 {
-		isWaterArabica = false
+		if t.Day()%10 == 4 {
+			isWaterFikus = false
+		}
+		if t.Day()%3 == 0 {
+			isWaterArabica = false
+		}
 	}
 }
 
