@@ -22,6 +22,7 @@ var opts Opts
 
 var isWaterFlowers = false
 var isWaterFikus = false
+var isWaterArabic = false
 
 func task() {
 	loc, _ := time.LoadLocation("Asia/Barnaul")
@@ -44,7 +45,8 @@ func task() {
 				_, _ = bot.Send(tgbot.NewMessage(chatId, "Пришло время полить фикус)"))
 			}
 			// в понедельник, среду и пятницу
-			if int(t.Weekday()) == 1 || int(t.Weekday()) == 3 || int(t.Weekday()) == 5 {
+			if (int(t.Weekday()) == 1 || int(t.Weekday()) == 3 || int(t.Weekday()) == 5) && isWaterArabic == false {
+				isWaterArabic = true
 				_, _ = bot.Send(tgbot.NewMessage(chatId, "Пришло время полить арабику и не фикус)"))
 			}
 		}
@@ -52,6 +54,7 @@ func task() {
 	// в полночь
 	if t.Hour() == 0 {
 		isWaterFlowers = false
+		isWaterArabic = false
 		if t.Day()%10 == 4 {
 			isWaterFikus = false
 		}
