@@ -4,6 +4,7 @@ import (
 	"NadiaOfficeBot/db"
 	"NadiaOfficeBot/files"
 	"errors"
+	"fmt"
 	"github.com/FedorovVladimir/go-log/logs"
 	tgbot "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/prprprus/scheduler"
@@ -21,7 +22,7 @@ type Opts struct {
 var opts Opts
 
 var isWaterFlowers = false
-var isWaterFikus = false
+var isWaterFikus = true
 var isWaterArabic = false
 
 func task() {
@@ -53,6 +54,7 @@ func task() {
 	}
 	// в полночь
 	if t.Hour() == 0 {
+		db.IsSelectedDinner = false
 		isWaterFlowers = false
 		isWaterArabic = false
 		if t.Day()%10 == 4 {
@@ -63,6 +65,8 @@ func task() {
 
 var bot *tgbot.BotAPI
 var chatId int64 = 0
+
+var BadDinner = "BAD_DINNER"
 
 //help - помощь
 //dinner  - место для обеда
@@ -100,6 +104,18 @@ func main() {
 		if chatId == 0 {
 			chatId = update.Message.Chat.ID
 			files.SaveChatId(chatId)
+		}
+
+		// обработчик кнопок
+		if update.CallbackQuery != nil {
+			who := update.CallbackQuery.From.UserName
+			what := update.CallbackQuery.Data
+
+			// плохой выбор обеда
+			if what == BadDinner {
+				db.IsSelectedDinner = false
+				selectDinner(fmt.Sprintf("Ну если @%s против. ", who))
+			}
 		}
 
 		// empty message
@@ -141,8 +157,7 @@ func main() {
 
 		// command /dinner
 		if update.Message.Text == "/dinner" {
-			_, _ = bot.Send(tgbot.NewMessage(update.Message.Chat.ID,
-				"Предлагаю сходить сегодня в '"+db.GetRandomDinnerPlace()+"'"))
+			selectDinner("")
 			continue
 		}
 
@@ -164,4 +179,17 @@ func main() {
 
 		_, _ = bot.Send(msg)
 	}
+}
+
+func selectDinner(prefix string) {
+	if db.IsSelectedDinner {
+		prefix += "Я уже выбрала. "
+	}
+	msg := tgbot.NewMessage(chatId, prefix+"Предлагаю сходить сегодня в '"+db.GetRandomDinnerPlace()+"'")
+	msg.ReplyMarkup = tgbot.InlineKeyboardMarkup{
+		InlineKeyboard: [][]tgbot.InlineKeyboardButton{
+			{tgbot.InlineKeyboardButton{Text: "осуждаю", CallbackData: &BadDinner}},
+		},
+	}
+	_, _ = bot.Send(msg)
 }
