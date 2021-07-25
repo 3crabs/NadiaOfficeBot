@@ -24,6 +24,8 @@ var opts Opts
 var isWaterFlowers = false
 var isWaterArabic = false
 
+var badUsers = map[string]bool{}
+
 func task() {
 	loc, _ := time.LoadLocation("Asia/Barnaul")
 	t := time.Now().In(loc)
@@ -58,6 +60,9 @@ func task() {
 		isWaterArabic = false
 		if t.Day()%10 == 4 {
 			files.SaveFikus(false)
+		}
+		for login := range badUsers {
+			badUsers[login] = false
 		}
 	}
 }
@@ -113,8 +118,14 @@ func main() {
 
 			// плохой выбор обеда
 			if what == BadDinner {
-				db.IsSelectedDinner = false
-				selectDinner(fmt.Sprintf("Ну если @%s против. ", who))
+				if badUsers[who] == false {
+					db.IsSelectedDinner = false
+					badUsers[who] = true
+					selectDinner(fmt.Sprintf("Ну если @%s против. ", who))
+				} else {
+					msg := tgbot.NewMessage(chatId, fmt.Sprintf("@%s, ты сегодня уже осуждал.", who))
+					_, _ = bot.Send(msg)
+				}
 			}
 		}
 
