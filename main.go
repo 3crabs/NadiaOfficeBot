@@ -22,7 +22,6 @@ type Opts struct {
 var opts Opts
 
 var isWaterFlowers = false
-var isWaterFikus = true
 var isWaterArabic = false
 
 func task() {
@@ -41,8 +40,8 @@ func task() {
 		// в 10 часов
 		if t.Hour() == 10 {
 			// каждый 10 день
-			if t.Day()%10 < 3 && isWaterFikus == false {
-				isWaterFikus = true
+			if t.Day()%10 < 3 && files.ReadFikus() == false {
+				files.SaveFikus(true)
 				_, _ = bot.Send(tgbot.NewMessage(chatId, "Пришло время полить фикус)"))
 			}
 			// в понедельник, среду и пятницу
@@ -58,7 +57,7 @@ func task() {
 		isWaterFlowers = false
 		isWaterArabic = false
 		if t.Day()%10 == 4 {
-			isWaterFikus = false
+			files.SaveFikus(false)
 		}
 	}
 }
@@ -73,6 +72,7 @@ var BadDinner = "BAD_DINNER"
 //flowers - о цветах
 func main() {
 	chatId = files.ReadChatId()
+	files.ReadFikus()
 	s, err := scheduler.NewScheduler(1000)
 	if err != nil {
 		panic(err)
